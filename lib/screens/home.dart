@@ -21,7 +21,10 @@ class _HomeState extends State<Home> {
   void openBox() async {
     await Hive.initFlutter();
     Hive.registerAdapter(NoteAdapter());
-    _notes = await Hive.openBox<Note>("notes");
+    var tempBox = await Hive.openBox<Note>("notes");
+    setState(() {
+      _notes = tempBox;
+    });
   }
 
   @override
