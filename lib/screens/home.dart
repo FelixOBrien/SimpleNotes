@@ -11,6 +11,7 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> {
+  bool isLoading = true;
   Box<Note> _notes;
   List<Note> _sortedNotes = [];
   @override
@@ -29,6 +30,7 @@ class _HomeState extends State<Home> {
     setState(() {
       _notes = tempBox;
       _sortedNotes = _sortedNotes;
+      isLoading = false;
     });
   }
 
@@ -36,71 +38,82 @@ class _HomeState extends State<Home> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
-        child: Container(
-          child: (_notes != null && _notes.isNotEmpty)
-              ? ListView.builder(
-                  itemCount: _notes.length,
-                  itemBuilder: (context, int index) {
-                    Note note = _sortedNotes[index];
-                    return Dismissible(
-                      key: Key(note.updatedAt.toString()),
-                      background: Container(
-                        color: Colors.red,
-                        child: Text(
-                          "Delete",
-                          style: TextStyle(color: Colors.white),
-                        ),
-                        padding: EdgeInsets.symmetric(horizontal: 15),
-                        alignment: Alignment.centerRight,
-                      ),
-                      direction: DismissDirection.endToStart,
-                      onDismissed: (DismissDirection d) {
-                        setState(() {
-                          _notes.deleteAt(note.index);
-                          _sortedNotes.removeAt(index);
-                        });
-                      },
-                      child: GestureDetector(
-                        onTap: () async {
-                          Note editedNote = await Navigator.push(context,
-                              MaterialPageRoute(builder: (context) {
-                            return EditNote(
-                              note: note,
-                            );
-                          }));
-
-                          editedNote.title = (editedNote.title.length == 0)
-                              ? "Empty Note"
-                              : editedNote.title;
-                          setState(() {
-                            _notes.putAt(editedNote.index, editedNote);
-                            _sortedNotes = _notes.values.toList();
-                            _sortedNotes.sort(
-                                (a, b) => b.updatedAt.compareTo(a.updatedAt));
-                          });
-                        },
-                        child: Column(
-                          children: <Widget>[
-                            ListTile(
-                              title: Text(note.title),
-                              subtitle: Text(Timeago.format(note.updatedAt)),
-                            ),
-                            Divider(
-                              height: 0,
-                            )
-                          ],
-                        ),
-                      ),
-                    );
-                  },
-                )
-              : Center(
-                  child: Text(
-                    "You don't have any notes",
-                    style: TextStyle(fontSize: 25.0),
-                  ),
+        child: (isLoading)
+            ? Container(
+                child: SizedBox(
+                  child: CircleSpinner,
+                  height: 100,
+                  width: 100,
                 ),
-        ),
+                alignment: Alignment.center,
+              )
+            : Container(
+                child: (_notes != null && _notes.isNotEmpty)
+                    ? ListView.builder(
+                        itemCount: _notes.length,
+                        itemBuilder: (context, int index) {
+                          Note note = _sortedNotes[index];
+                          return Dismissible(
+                            key: Key(note.updatedAt.toString()),
+                            background: Container(
+                              color: Colors.red,
+                              child: Text(
+                                "Delete",
+                                style: TextStyle(color: Colors.white),
+                              ),
+                              padding: EdgeInsets.symmetric(horizontal: 15),
+                              alignment: Alignment.centerRight,
+                            ),
+                            direction: DismissDirection.endToStart,
+                            onDismissed: (DismissDirection d) {
+                              setState(() {
+                                _notes.deleteAt(note.index);
+                                _sortedNotes.removeAt(index);
+                              });
+                            },
+                            child: GestureDetector(
+                              onTap: () async {
+                                Note editedNote = await Navigator.push(context,
+                                    MaterialPageRoute(builder: (context) {
+                                  return EditNote(
+                                    note: note,
+                                  );
+                                }));
+
+                                editedNote.title =
+                                    (editedNote.title.length == 0)
+                                        ? "Empty Note"
+                                        : editedNote.title;
+                                setState(() {
+                                  _notes.putAt(editedNote.index, editedNote);
+                                  _sortedNotes = _notes.values.toList();
+                                  _sortedNotes.sort((a, b) =>
+                                      b.updatedAt.compareTo(a.updatedAt));
+                                });
+                              },
+                              child: Column(
+                                children: <Widget>[
+                                  ListTile(
+                                    title: Text(note.title),
+                                    subtitle:
+                                        Text(Timeago.format(note.updatedAt)),
+                                  ),
+                                  Divider(
+                                    height: 0,
+                                  )
+                                ],
+                              ),
+                            ),
+                          );
+                        },
+                      )
+                    : Center(
+                        child: Text(
+                          "You don't have any notes",
+                          style: TextStyle(fontSize: 25.0),
+                        ),
+                      ),
+              ),
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () async {
@@ -130,3 +143,8 @@ class _HomeState extends State<Home> {
     );
   }
 }
+
+const CircleSpinner = CircularProgressIndicator(
+  valueColor: AlwaysStoppedAnimation(Colors.blue),
+  strokeWidth: 5,
+);

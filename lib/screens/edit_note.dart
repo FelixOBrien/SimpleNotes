@@ -64,7 +64,3 @@ class _EditNoteState extends State<EditNote> {
     });
   }
 }
-
-const CircleSpinner = CircularProgressIndicator(
-  valueColor: AlwaysStoppedAnimation(Colors.blue),
-);
