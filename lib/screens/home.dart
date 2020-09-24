@@ -12,6 +12,7 @@ class Home extends StatefulWidget {
 
 class _HomeState extends State<Home> {
   Box<Note> _notes;
+  List<Note> _sortedNotes = [];
   @override
   void initState() {
     openBox();
@@ -22,8 +23,12 @@ class _HomeState extends State<Home> {
     await Hive.initFlutter();
     Hive.registerAdapter(NoteAdapter());
     var tempBox = await Hive.openBox<Note>("notes");
+    _sortedNotes = tempBox.values.toList();
+    _sortedNotes.sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
+
     setState(() {
       _notes = tempBox;
+      _sortedNotes = _sortedNotes;
     });
   }
 
@@ -36,7 +41,7 @@ class _HomeState extends State<Home> {
               ? ListView.builder(
                   itemCount: _notes.length,
                   itemBuilder: (context, int index) {
-                    Note note = _notes.getAt(index);
+                    Note note = _sortedNotes[index];
                     return Dismissible(
                       key: Key(note.updatedAt.toString()),
                       background: Container(
@@ -51,7 +56,8 @@ class _HomeState extends State<Home> {
                       direction: DismissDirection.endToStart,
                       onDismissed: (DismissDirection d) {
                         setState(() {
-                          _notes.deleteAt(index);
+                          _notes.deleteAt(note.index);
+                          _sortedNotes.removeAt(index);
                         });
                       },
                       child: GestureDetector(
@@ -62,11 +68,15 @@ class _HomeState extends State<Home> {
                               note: note,
                             );
                           }));
+
                           editedNote.title = (editedNote.title.length == 0)
                               ? "Empty Note"
                               : editedNote.title;
                           setState(() {
-                            _notes.putAt(index, editedNote);
+                            _notes.putAt(editedNote.index, editedNote);
+                            _sortedNotes = _notes.values.toList();
+                            _sortedNotes.sort(
+                                (a, b) => b.updatedAt.compareTo(a.updatedAt));
                           });
                         },
                         child: Column(
@@ -111,6 +121,8 @@ class _HomeState extends State<Home> {
           }
           setState(() {
             _notes.add(note);
+            _sortedNotes = _notes.values.toList();
+            _sortedNotes.sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
           });
         },
         child: Icon(Icons.add),

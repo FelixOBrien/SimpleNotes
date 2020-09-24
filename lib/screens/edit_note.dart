@@ -54,12 +54,17 @@ class _EditNoteState extends State<EditNote> {
       if (value.length == 0) {
         newNote.title = "Empty Note";
       } else if (value.length >= 15) {
-        newNote.title = (value.trim().substring(0, 14));
+        newNote.title =
+            (value.substring(0, 14).replaceAll(RegExp(r'[\n\s]+'), ""));
       } else {
-        newNote.title = value;
+        newNote.title = value.replaceAll(RegExp(r"[\n\s]+"), "");
       }
       newNote.content = value;
       newNote.updatedAt = DateTime.now();
     });
   }
 }
+
+const CircleSpinner = CircularProgressIndicator(
+  valueColor: AlwaysStoppedAnimation(Colors.blue),
+);
